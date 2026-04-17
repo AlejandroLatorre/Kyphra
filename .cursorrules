@@ -1,0 +1,15 @@
+# Cursor rules for Kyphra
+
+The canonical set of rules for any AI assistant (Cursor, Claude Code, etc.)
+working in this repo lives in `CLAUDE.md` at the repo root. **Read it first
+and treat it as the source of truth.**
+
+These are the two rules most likely to bite if forgotten:
+
+1. Never push to remote without explicit user approval. Local-first always.
+2. Never use the corporate NTT Data git identity for this repo. Use
+   `AlejandroLatorre` / `latorreotero@gmail.com` only.
+
+Everything else — role, constraints, stack, code standards, workflow — is in
+`CLAUDE.md`. If you find yourself about to duplicate a rule into this file,
+update `CLAUDE.md` instead.
