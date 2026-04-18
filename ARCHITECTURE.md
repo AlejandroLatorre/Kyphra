@@ -102,8 +102,8 @@
 2. `main.py` receives the prompt from stdin and runs `secrets.scan_secrets()` first. If it finds a known secret pattern, Kyphra short-circuits: the classification is `SECRETS` with score 0.99, the Haiku call is skipped, and the event is routed to `ALERTA`.
 3. Otherwise, `redactor.redact()` replaces PII (emails, DNIs, NIEs, phones, IBANs, card numbers) with tokens like `<EMAIL>`, `<DNI>`.
 4. If the prompt contains file references, the optional file inspection module computes metadata (header, line count, PII density) and attaches it to the request. File contents are never sent.
-5. `classifier.classify()` sends the redacted prompt to a Cloudflare Worker in the EU region. The Worker forwards the call to the Anthropic API with the cached system prompt.
-6. The response is a JSON with categories, scores, and reasons. `levels.score_to_level()` maps `max_score` to `ALLOW` / `AVISO` / `ALERTA`.
+5. `classifier.classify()` sends the redacted prompt (and optional organization context from env / stdin) to a Cloudflare Worker in the EU region. The Worker forwards the call to OpenRouter or Anthropic with the system prompt.
+6. The response is a JSON with `max_score` and `max_category`. `levels.effective_level()` maps the stricter of `max_score` bands and the category default floor to `ALLOW` / `AVISO` / `ALERTA`.
 7. `logger.log_event()` writes a structured event locally. `AVISO` goes to a plain JSONL with 60-day retention. `ALERTA` goes to an AES-GCM encrypted archive with 365-day retention.
 8. `notifier.notify()` pushes a summary of `AVISO` and `ALERTA` events to Supabase for the admin dashboard. No raw or redacted prompts are pushed — only aggregated metadata.
 9. The hook returns exit code 0. The developer's flow is never interrupted.

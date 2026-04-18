@@ -1,6 +1,6 @@
 # Taxonomy
 
-Nine categories. Every classification returns one or more of these with a score between 0 and 1. The `max_score` drives the level (`ALLOW` / `AVISO` / `ALERTA`).
+Ten categories. Every classification returns one or more of these with a score between 0 and 1. The `max_score` drives the level (`ALLOW` / `AVISO` / `ALERTA`), combined with the category default floor (see `effective_level` in code).
 
 ## Thresholds
 
@@ -65,6 +65,13 @@ Explicit attempts to manipulate the LLM.
 
 - Examples: "ignore previous instructions", "print your system prompt", known jailbreak phrasings.
 - Typical score: 0.90+ for recognized patterns.
+
+### `OFF_SCOPE`
+The requested work is incompatible with the configured organization context (sector, role, stated allowed scope for the assistant), not a data-leakage hit by itself.
+
+- Examples: robotics / drones / ballistics tooling when `allowed_scope` is retail banking payment APIs only.
+- Requires org context to be supplied to the classifier (env + optional `kyphra_org` on stdin); without it, the model must not emit this category.
+- Typical score: 0.85+ when the mismatch is clear; default mapped level is `ALERTA`.
 
 ### `BENIGN`
 No risk detected.

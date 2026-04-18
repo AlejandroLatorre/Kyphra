@@ -19,14 +19,15 @@ from kyphra.taxonomy.categories import Category, Level
         (Category.FINANCIAL_DATA, Level.AVISO),
         (Category.STRATEGIC, Level.AVISO),
         (Category.PROMPT_INJECTION, Level.ALERTA),
+        (Category.OFF_SCOPE, Level.ALERTA),
     ],
 )
 def test_default_level_per_category(category: Category, expected: Level) -> None:
     assert category.default_level is expected
 
 
-def test_nine_categories() -> None:
-    assert len(Category) == 9
+def test_ten_categories() -> None:
+    assert len(Category) == 10
 
 
 def test_three_levels() -> None:

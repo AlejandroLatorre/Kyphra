@@ -65,9 +65,16 @@ class LogEvent:
     redacted_prompt: str
     classifier_outcome: str
     secret_short_circuit: bool
+    org_sector: str | None = None
+    org_role: str | None = None
+    org_user_id: str | None = None
+    org_allowed_scope: str | None = None
 
 
 def _record_dict(event: LogEvent) -> dict[str, Any]:
+    scope = event.org_allowed_scope
+    if isinstance(scope, str) and len(scope) > 400:
+        scope = scope[:400] + "…"
     return {
         "ts": datetime.now(UTC).isoformat(),
         "hook_event_name": event.hook_event_name,
@@ -80,6 +87,10 @@ def _record_dict(event: LogEvent) -> dict[str, Any]:
         "redacted_prompt": event.redacted_prompt,
         "classifier_outcome": event.classifier_outcome,
         "secret_short_circuit": event.secret_short_circuit,
+        "org_sector": event.org_sector,
+        "org_role": event.org_role,
+        "org_user_id": event.org_user_id,
+        "org_allowed_scope": scope,
     }
 
 

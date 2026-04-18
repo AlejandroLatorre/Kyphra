@@ -4,7 +4,9 @@ Kept in one place so classifier, logger, and UI all agree on ids, labels
 and severity bands. Any change here must be reflected in TAXONOMY.md.
 
 Default levels follow typical score floors in TAXONOMY.md (what band the
-category usually opens in when present without a numeric score).
+category usually opens in when present without a numeric score). The hook
+uses `effective_level` so the final level is the stricter of score bands and
+this default.
 """
 from __future__ import annotations
 
@@ -26,6 +28,7 @@ class Category(StrEnum):
     FINANCIAL_DATA = "FINANCIAL_DATA"
     STRATEGIC = "STRATEGIC"
     PROMPT_INJECTION = "PROMPT_INJECTION"
+    OFF_SCOPE = "OFF_SCOPE"
     BENIGN = "BENIGN"
 
     @property
@@ -48,4 +51,6 @@ class Category(StrEnum):
             case Category.STRATEGIC:
                 return Level.AVISO
             case Category.PROMPT_INJECTION:
+                return Level.ALERTA
+            case Category.OFF_SCOPE:
                 return Level.ALERTA

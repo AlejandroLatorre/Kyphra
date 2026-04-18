@@ -13,6 +13,7 @@ const CATEGORIES = [
   "FINANCIAL_DATA",
   "STRATEGIC",
   "PROMPT_INJECTION",
+  "OFF_SCOPE",
   "BENIGN",
 ] as const;
 
@@ -21,8 +22,16 @@ interface Env {
   OPENROUTER_MODEL?: string;
 }
 
+interface KyphraOrg {
+  sector?: string;
+  role?: string;
+  allowed_scope?: string;
+  user_id?: string;
+}
+
 interface KyphraIn {
   prompt?: string;
+  org?: KyphraOrg | null;
 }
 
 interface KyphraOut {
@@ -30,11 +39,39 @@ interface KyphraOut {
   max_category: string;
 }
 
-const SYSTEM = `You are a strict JSON classifier for developer prompts (already redacted).
+const SYSTEM_BASE = `You are a strict JSON classifier for developer prompts (already redacted).
 Return ONLY a JSON object with keys "max_score" (number 0-1) and "max_category" (string).
 max_score is the highest risk among triggered categories.
 max_category must be exactly one of: ${CATEGORIES.join(", ")}.
+OFF_SCOPE means the requested work is incompatible with the supplied organization context (wrong domain for the sector or violates stated allowed scope), not mere novelty.
 No markdown, no prose, no code fences.`;
+
+function formatOrgSection(org: KyphraOrg | null | undefined): string {
+  if (!org || typeof org !== "object") {
+    return `Organization context: none. Never set max_category to OFF_SCOPE; use only confidentiality categories and BENIGN.`;
+  }
+  const sector = typeof org.sector === "string" ? org.sector.trim() : "";
+  const role = typeof org.role === "string" ? org.role.trim() : "";
+  const allowed_scope = typeof org.allowed_scope === "string" ? org.allowed_scope.trim() : "";
+  const user_id = typeof org.user_id === "string" ? org.user_id.trim() : "";
+  if (!sector && !allowed_scope) {
+    return `Organization context: none. Never set max_category to OFF_SCOPE; use only confidentiality categories and BENIGN.`;
+  }
+  const lines: string[] = [
+    "Organization context (for policy fit only; not treated as secret values):",
+    "",
+  ];
+  if (sector) lines.push(`Sector/industry: ${sector}`);
+  if (role) lines.push(`Role: ${role}`);
+  if (allowed_scope) lines.push(`Stated allowed scope for this assistant: ${allowed_scope}`);
+  if (user_id) lines.push(`Internal user id: ${user_id}`);
+  lines.push(
+    "",
+    "When this context is present, set max_category to OFF_SCOPE with max_score at least 0.85 if the user prompt clearly asks for work outside that sector/scope (e.g. drone trajectory labs, ballistics, game anti-cheat reverse engineering when scope is banking payment APIs).",
+    "If the prompt plausibly fits the sector and scope, or is ordinary engineering, do not use OFF_SCOPE.",
+  );
+  return lines.join("\n");
+}
 
 function parseModelJson(text: string): KyphraOut | null {
   const trimmed = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
@@ -88,6 +125,8 @@ export default {
 
     const model = env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku";
 
+    const systemContent = `${SYSTEM_BASE}\n\n${formatOrgSection(body.org)}`;
+
     const orRes = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: {
@@ -102,7 +141,7 @@ export default {
         temperature: 0,
         response_format: { type: "json_object" },
         messages: [
-          { role: "system", content: SYSTEM },
+          { role: "system", content: systemContent },
           { role: "user", content: body.prompt },
         ],
       }),
