@@ -2,7 +2,7 @@
 
 Pipeline:
     stdin (JSON) -> parse -> merge org context (env + kyphra_org) -> secrets short-circuit -> redact
-                 -> (optional) file inspection -> classify (with org) -> effective level
+                 -> file hints (@refs under cwd, unless secrets hit) -> classify (org + file_hints) -> effective level
                  -> log -> notify -> exit 0
 
 Invariant: this function MUST return exit code 0 in every path, including errors.
