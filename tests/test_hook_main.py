@@ -38,6 +38,29 @@ def test_log_never_contains_raw_secret(monkeypatch: pytest.MonkeyPatch, tmp_path
     assert "<SECRET_" in text
 
 
+def test_hook_stub_referenced_csv_pii(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    csv = tmp_path / "datos.csv"
+    csv.write_text(
+        "nombre,email,telefono,dni,plan\n" + ("a,b@c.com,+34,12345678A,p\n" * 520),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("KYPHRA_HOME", str(tmp_path))
+    monkeypatch.setenv("KYPHRA_STUB", "1")
+    monkeypatch.setenv("KYPHRA_PBKDF2_ITERATIONS", "1000")
+    proc = subprocess.run(
+        [sys.executable, "-m", "kyphra.hook.main"],
+        input=json.dumps({"prompt": "analiza segmentación @datos.csv", "cwd": str(tmp_path)}),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert proc.returncode == 0
+    assert "AVISO" in proc.stderr or "ALERTA" in proc.stderr
+    logf = tmp_path / "logs" / "events.jsonl"
+    assert "CUSTOMER_DATA" in logf.read_text(encoding="utf-8")
+    assert "file_inspection_summary" in logf.read_text(encoding="utf-8")
+
+
 def test_hook_off_scope_banking_stub_alerta(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setenv("KYPHRA_HOME", str(tmp_path))
     monkeypatch.setenv("KYPHRA_STUB", "1")

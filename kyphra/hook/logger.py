@@ -69,12 +69,16 @@ class LogEvent:
     org_role: str | None = None
     org_user_id: str | None = None
     org_allowed_scope: str | None = None
+    file_inspection_summary: str | None = None
 
 
 def _record_dict(event: LogEvent) -> dict[str, Any]:
     scope = event.org_allowed_scope
     if isinstance(scope, str) and len(scope) > 400:
         scope = scope[:400] + "…"
+    fsum = event.file_inspection_summary
+    if isinstance(fsum, str) and len(fsum) > 500:
+        fsum = fsum[:500] + "…"
     return {
         "ts": datetime.now(UTC).isoformat(),
         "hook_event_name": event.hook_event_name,
@@ -91,6 +95,7 @@ def _record_dict(event: LogEvent) -> dict[str, Any]:
         "org_role": event.org_role,
         "org_user_id": event.org_user_id,
         "org_allowed_scope": scope,
+        "file_inspection_summary": fsum,
     }
 
 

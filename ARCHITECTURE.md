@@ -101,8 +101,8 @@
 1. Developer submits a prompt through Claude Code (or compatible tool). The `UserPromptSubmit` hook fires.
 2. `main.py` receives the prompt from stdin and runs `secrets.scan_secrets()` first. If it finds a known secret pattern, Kyphra short-circuits: the classification is `SECRETS` with score 0.99, the Haiku call is skipped, and the event is routed to `ALERTA`.
 3. Otherwise, `redactor.redact()` replaces PII (emails, DNIs, NIEs, phones, IBANs, card numbers) with tokens like `<EMAIL>`, `<DNI>`.
-4. If the prompt contains file references, the optional file inspection module computes metadata (header, line count, PII density) and attaches it to the request. File contents are never sent.
-5. `classifier.classify()` sends the redacted prompt (and optional organization context from env / stdin) to a Cloudflare Worker in the EU region. The Worker forwards the call to OpenRouter or Anthropic with the system prompt.
+4. If there was no secret short-circuit, `file_inspect.collect_file_hints()` scans `@`-referenced paths under `cwd` (suffix allowlist), reads a bounded prefix, and builds **`file_hints`** (header sample, extrapolated row estimate, PII-like column name hits). File contents are never sent to the model.
+5. `classifier.classify()` sends the redacted prompt, optional **org** context, and optional **`file_hints`**, to a Cloudflare Worker in the EU region. The Worker forwards the call to OpenRouter (default) with the composed system prompt.
 6. The response is a JSON with `max_score` and `max_category`. `levels.effective_level()` maps the stricter of `max_score` bands and the category default floor to `ALLOW` / `AVISO` / `ALERTA`.
 7. `logger.log_event()` writes a structured event locally. `AVISO` goes to a plain JSONL with 60-day retention. `ALERTA` goes to an AES-GCM encrypted archive with 365-day retention.
 8. `notifier.notify()` optionally `POST`s JSON **metadata** (level, category, score, session paths, org fields — **no prompt text**) to `KYPHRA_NOTIFY_WEBHOOK`. Supabase-backed digest and dashboard are planned; the webhook is the minimal shipping path.

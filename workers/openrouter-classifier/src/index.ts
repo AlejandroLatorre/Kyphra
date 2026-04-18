@@ -32,6 +32,7 @@ interface KyphraOrg {
 interface KyphraIn {
   prompt?: string;
   org?: KyphraOrg | null;
+  file_hints?: unknown;
 }
 
 interface KyphraOut {
@@ -71,6 +72,19 @@ function formatOrgSection(org: KyphraOrg | null | undefined): string {
     "If the prompt plausibly fits the sector and scope, or is ordinary engineering, do not use OFF_SCOPE.",
   );
   return lines.join("\n");
+}
+
+function formatFileHints(hints: unknown): string {
+  if (!Array.isArray(hints) || hints.length === 0) {
+    return "Referenced file metadata from hook: none.";
+  }
+  const serialized = JSON.stringify(hints);
+  const clipped = serialized.length > 4000 ? `${serialized.slice(0, 4000)}…` : serialized;
+  return [
+    "Referenced file metadata (header samples, approximate row counts, PII-like column name hits only; file contents are not sent):",
+    clipped,
+    "If metadata implies bulk customer or employee personal data in a referenced file, use CUSTOMER_DATA or PII_* with a high max_score as appropriate.",
+  ].join("\n");
 }
 
 function parseModelJson(text: string): KyphraOut | null {
@@ -125,7 +139,7 @@ export default {
 
     const model = env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku";
 
-    const systemContent = `${SYSTEM_BASE}\n\n${formatOrgSection(body.org)}`;
+    const systemContent = `${SYSTEM_BASE}\n\n${formatOrgSection(body.org)}\n\n${formatFileHints(body.file_hints)}`;
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: "POST",

@@ -48,7 +48,7 @@ Eight-week plan to first paying design partner and a repeatable sales motion. Da
 - Onboarding playbook: install checklist, legitimate interest notice template, kickoff call agenda.
 - Weekly report template: event counts by level and category, top 5 riskiest events (redacted), time to alert.
 - Collect feedback on: false positive rate, signal/noise balance, which categories matter to them.
-- File Inspection Module v1 (the commercial differentiator vs Harmonic / Prompt Security / Lasso).
+- File Inspection Module v1 (v1 shipped in hook: `@` paths under `cwd`, text formats; XLSX/PDF parser still out of scope).
 
 **Exit criteria:** at least 1 design partner with real events flagged, written feedback collected.
 

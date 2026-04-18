@@ -40,6 +40,7 @@ def notify(event: LogEvent) -> None:
         "org_sector": event.org_sector,
         "org_role": event.org_role,
         "org_user_id": event.org_user_id,
+        "file_inspection_summary": event.file_inspection_summary,
     }
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = Request(url, data=body, method="POST", headers={"Content-Type": "application/json"})  # noqa: S310

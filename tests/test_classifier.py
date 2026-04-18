@@ -31,6 +31,20 @@ def test_stub_prompt_injection() -> None:
     assert r.max_score >= 0.9
 
 
+def test_stub_file_hints_customer_csv() -> None:
+    hints = [
+        {
+            "path": "c.csv",
+            "pii_header_hits": ["email", "telefono", "dni", "nombre"],
+            "extrapolated_row_estimate": 600,
+            "pii_column_density": 0.6,
+        },
+    ]
+    r = classify("analyze @c.csv", None, hints)
+    assert r.max_category is Category.CUSTOMER_DATA
+    assert r.max_score >= 0.7
+
+
 def test_stub_off_scope_banking_drone() -> None:
     org = OrgContext(
         sector="retail_banking",
@@ -60,6 +74,8 @@ def test_http_mode_ok(monkeypatch: pytest.MonkeyPatch) -> None:
             payload = json.loads(raw.decode("utf-8"))
             if "org" in payload:
                 assert payload["org"].get("sector") == "banking"
+            if "file_hints" in payload:
+                assert isinstance(payload["file_hints"], list)
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
@@ -84,5 +100,8 @@ def test_http_mode_ok(monkeypatch: pytest.MonkeyPatch) -> None:
         org = OrgContext(sector="banking", role="", allowed_scope="", user_id="")
         r2 = classify("x", org)
         assert r2.outcome == "OK"
+        fh = [{"path": "f.csv", "extrapolated_row_estimate": 1}]
+        r3 = classify("z", None, fh)
+        assert r3.outcome == "OK"
     finally:
         server.shutdown()

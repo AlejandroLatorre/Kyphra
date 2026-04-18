@@ -1,6 +1,6 @@
 # OpenRouter classifier (Cloudflare Worker)
 
-Puente entre **Kyphra** (`POST` con `prompt` redactado y `org` opcional) y **OpenRouter** (Haiku u otro modelo barato). El objeto `org` (`sector`, `role`, `allowed_scope`, `user_id`) activa la categoría `OFF_SCOPE` en el modelo cuando el trabajo pedido encaja mal con ese contexto.
+Puente entre **Kyphra** (`POST` con `prompt` redactado, `org` opcional y **`file_hints`** opcional) y **OpenRouter** (Haiku u otro modelo barato). `org` activa `OFF_SCOPE` cuando el trabajo encaja mal con el contexto; `file_hints` son metadatos del hook (cabecera CSV, filas estimadas, columnas tipo PII) **sin** contenido de fichero.
 
 ## Requisitos
 

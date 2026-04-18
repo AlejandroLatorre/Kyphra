@@ -17,7 +17,7 @@ Kyphra sits **CLI-first** on the developer machine: **regex short-circuit for se
 | Hook pipeline (`kyphra.hook.main`) | **Yes** — stdin JSON, org merge, secrets scan, redact, classify (stub or Worker), levels, local JSONL + ALERTA encryption |
 | Cloudflare Worker classifier | **Yes** — EU deploy path; OpenRouter; optional `org` in POST body |
 | Stub classifier | **Yes** — offline dev; banking + drone-style **OFF_SCOPE** heuristics |
-| **File-aware** `@file` inspection | **Planned** — positioning and demo script; not wired in `main` yet |
+| **File-aware** `@file` inspection | **Yes (v1)** — `collect_file_hints` under `cwd`; CSV/JSON/txt/md/tsv/xml; header + row estimate + PII-like column hits → `file_hints` to Worker / stub; summary in logs |
 | **Notifier** (`KYPHRA_NOTIFY_WEBHOOK`) | **Yes** — optional POST of **metadata only** (no prompt body) for AVISO/ALERTA |
 | Supabase + Angular dashboard | **Planned** — see `ROADMAP.md` |
 

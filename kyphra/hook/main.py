@@ -14,6 +14,7 @@ import sys
 import traceback
 
 from kyphra.hook.classifier import ClassificationResult, classify
+from kyphra.hook.file_inspect import collect_file_hints
 from kyphra.hook.levels import effective_level
 from kyphra.hook.logger import LogEvent, log_event
 from kyphra.hook.notifier import notify
@@ -54,13 +55,20 @@ def run() -> None:
 
     org: OrgContext | None = merge_org_from_env_and_stdin(data)
 
+    file_hints: list[dict[str, object]] = []
+    file_summary: str | None = None
     secret_sc = bool(find_secrets(prompt))
+    if not secret_sc:
+        file_hints = collect_file_hints(prompt, cwd)
+        if file_hints:
+            file_summary = json.dumps(file_hints, ensure_ascii=False)[:500]
+
     if secret_sc:
         redacted = redact(prompt).text
         result = ClassificationResult(max_category=Category.SECRETS, max_score=0.99, outcome="OK")
     else:
         redacted = redact(prompt).text
-        result = classify(redacted, org)
+        result = classify(redacted, org, file_hints or None)
 
     if result.outcome == "UNKNOWN_TIMEOUT":
         level = Level.ALLOW
@@ -92,6 +100,7 @@ def run() -> None:
         org_role=org.role if org else None,
         org_user_id=org.user_id if org else None,
         org_allowed_scope=org.allowed_scope if org else None,
+        file_inspection_summary=file_summary,
     )
     log_event(event)
     notify(event)

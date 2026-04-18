@@ -74,6 +74,7 @@ def test_notify_posts_json_for_aviso(monkeypatch: pytest.MonkeyPatch) -> None:
             org_role=None,
             org_user_id="u1",
             org_allowed_scope=None,
+            file_inspection_summary='[{"path":"f.csv"}]',
         )
         notify(ev)
         assert len(captured) == 1
@@ -81,6 +82,7 @@ def test_notify_posts_json_for_aviso(monkeypatch: pytest.MonkeyPatch) -> None:
         assert body["level"] == "AVISO"
         assert body["max_category"] == "PII_PERSONAL"
         assert body["org_sector"] == "banking"
+        assert body.get("file_inspection_summary") == '[{"path":"f.csv"}]'
         assert "redacted_prompt" not in body
     finally:
         server.shutdown()
