@@ -16,6 +16,7 @@ import traceback
 from kyphra.hook.classifier import ClassificationResult, classify
 from kyphra.hook.levels import effective_level
 from kyphra.hook.logger import LogEvent, log_event
+from kyphra.hook.notifier import notify
 from kyphra.hook.org_context import OrgContext, merge_org_from_env_and_stdin
 from kyphra.hook.redactor import redact
 from kyphra.hook.secrets import find_secrets
@@ -76,24 +77,24 @@ def run() -> None:
     if level in (Level.AVISO, Level.ALERTA):
         _stderr(level, summary)
 
-    log_event(
-        LogEvent(
-            hook_event_name=hook_event_name,
-            session_id=session_id,
-            cwd=cwd,
-            transcript_path=transcript_path,
-            level=level,
-            max_category=max_category,
-            max_score=max_score,
-            redacted_prompt=redacted,
-            classifier_outcome=outcome,
-            secret_short_circuit=secret_sc,
-            org_sector=org.sector if org else None,
-            org_role=org.role if org else None,
-            org_user_id=org.user_id if org else None,
-            org_allowed_scope=org.allowed_scope if org else None,
-        )
+    event = LogEvent(
+        hook_event_name=hook_event_name,
+        session_id=session_id,
+        cwd=cwd,
+        transcript_path=transcript_path,
+        level=level,
+        max_category=max_category,
+        max_score=max_score,
+        redacted_prompt=redacted,
+        classifier_outcome=outcome,
+        secret_short_circuit=secret_sc,
+        org_sector=org.sector if org else None,
+        org_role=org.role if org else None,
+        org_user_id=org.user_id if org else None,
+        org_allowed_scope=org.allowed_scope if org else None,
     )
+    log_event(event)
+    notify(event)
 
 
 def main() -> None:

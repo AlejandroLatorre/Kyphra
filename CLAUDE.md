@@ -14,7 +14,7 @@ When speed-to-ship and security conflict, **security wins**. When security and a
 
 ## What Kyphra is
 
-A privacy and confidentiality classifier for developer prompts sent to AI coding assistants. Observes, classifies, alerts. **Never blocks.** Three levels: `ALLOW` / `AVISO` / `ALERTA`.
+A privacy and confidentiality classifier for developer prompts sent to AI coding assistants. **Product line:** observability for what developers do with AI on corporate machines — leakage, abuse patterns, and (with org context) **off-scope** work; not only token filtering. Observes, classifies, alerts. **Never blocks.** Three levels: `ALLOW` / `AVISO` / `ALERTA`. Final level uses `effective_level` (score + category floor).
 
 See [`README.md`](README.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.md`](SECURITY.md), [`PRIVACY.md`](PRIVACY.md), [`TAXONOMY.md`](TAXONOMY.md) and [`ROADMAP.md`](ROADMAP.md) for context.
 
@@ -32,15 +32,15 @@ See [`README.md`](README.md), [`ARCHITECTURE.md`](ARCHITECTURE.md), [`SECURITY.m
 ## Tech stack
 
 - Python 3.11+, strict typing (`mypy --strict` must pass).
-- `anthropic` SDK with model `claude-haiku-4-5-20251001`, prompt caching enabled.
-- `pydantic` v2 for I/O contracts.
-- `typer` + `rich` for the CLI.
+- **Classifier today:** Cloudflare **Worker** (EU) calling **OpenRouter**; default model slug `anthropic/claude-3.5-haiku`. API keys live in **Wrangler secrets**, not in the client repo. The hook only sends **redacted** prompts (+ optional `org` JSON). A direct **Anthropic** path / Haiku 4.5 + prompt caching is compatible with the same Worker pattern but is not the only deployment mode.
+- `pydantic` v2 for I/O contracts (where used).
+- `typer` + `rich` for the CLI (planned surface; hook is the MVP focus).
 - `cryptography` for AES-GCM on ALERTA logs.
 - `pytest` + `pytest-cov` for tests, 80% coverage minimum on classifier, secrets, redactor.
 - `ruff` for lint + format.
-- Serverless endpoint: **Cloudflare Workers** preferred, Vercel as fallback. EU region only.
-- Persistence: **Supabase free tier, EU region**.
-- Dashboard: **Angular 18+** with signals, Tailwind CSS.
+- Serverless edge: **Cloudflare Workers**, EU region.
+- **Optional** `KYPHRA_NOTIFY_WEBHOOK`: HTTPS POST of **metadata only** after each AVISO/ALERTA (`kyphra.hook.notifier`).
+- Persistence: **Supabase EU** + **Angular 18+** dashboard — **planned** after hook hardening; do not block hook work on them.
 
 Phase 2 stack (do not build yet, only document): Gemma 4 self-hosted on Hetzner GPU for clients that refuse external APIs.
 

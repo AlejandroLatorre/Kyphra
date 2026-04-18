@@ -105,7 +105,7 @@
 5. `classifier.classify()` sends the redacted prompt (and optional organization context from env / stdin) to a Cloudflare Worker in the EU region. The Worker forwards the call to OpenRouter or Anthropic with the system prompt.
 6. The response is a JSON with `max_score` and `max_category`. `levels.effective_level()` maps the stricter of `max_score` bands and the category default floor to `ALLOW` / `AVISO` / `ALERTA`.
 7. `logger.log_event()` writes a structured event locally. `AVISO` goes to a plain JSONL with 60-day retention. `ALERTA` goes to an AES-GCM encrypted archive with 365-day retention.
-8. `notifier.notify()` pushes a summary of `AVISO` and `ALERTA` events to Supabase for the admin dashboard. No raw or redacted prompts are pushed — only aggregated metadata.
+8. `notifier.notify()` optionally `POST`s JSON **metadata** (level, category, score, session paths, org fields — **no prompt text**) to `KYPHRA_NOTIFY_WEBHOOK`. Supabase-backed digest and dashboard are planned; the webhook is the minimal shipping path.
 9. The hook returns exit code 0. The developer's flow is never interrupted.
 
 ## Why these choices

@@ -78,8 +78,8 @@ def _stub_classify(redacted: str, org: OrgContext | None) -> ClassificationResul
 
 
 def _http_classify(redacted: str, endpoint: str, org: OrgContext | None) -> ClassificationResult:
-    parsed = urlparse(endpoint)
-    if parsed.scheme not in ("http", "https"):
+    endpoint_parts = urlparse(endpoint)
+    if endpoint_parts.scheme not in ("http", "https"):
         return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
     payload: dict[str, object] = {"prompt": redacted}
     if org is not None:
@@ -93,16 +93,33 @@ def _http_classify(redacted: str, endpoint: str, org: OrgContext | None) -> Clas
     )
     try:
         with urllib.request.urlopen(req, timeout=2) as resp:
-            payload = json.loads(resp.read().decode("utf-8"))
+            parsed = json.loads(resp.read().decode("utf-8"))
     except (TimeoutError, OSError, urllib.error.URLError):
         return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
     except (UnicodeDecodeError, json.JSONDecodeError, KeyError, TypeError, ValueError):
         return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
 
+    if not isinstance(parsed, dict):
+        return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
+    data: dict[str, object] = parsed
+    ms_raw = data.get("max_score")
+    mc_raw = data.get("max_category")
+    if isinstance(ms_raw, bool) or ms_raw is None:
+        return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
+    if isinstance(ms_raw, (int, float)):
+        max_score = float(ms_raw)
+    elif isinstance(ms_raw, str):
+        try:
+            max_score = float(ms_raw)
+        except ValueError:
+            return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
+    else:
+        return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
+    if not isinstance(mc_raw, str):
+        return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
     try:
-        max_score = float(payload["max_score"])
-        max_cat = Category(str(payload["max_category"]))
-    except (KeyError, TypeError, ValueError):
+        max_cat = Category(mc_raw)
+    except ValueError:
         return ClassificationResult(max_category=Category.BENIGN, max_score=0.0, outcome="UNKNOWN_TIMEOUT")
 
     return ClassificationResult(max_category=max_cat, max_score=max_score, outcome="OK")

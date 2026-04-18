@@ -11,7 +11,7 @@ Eight-week plan to first paying design partner and a repeatable sales motion. Da
 - Implement `kyphra.hook.classifier` with stub + Haiku path, 2-second hard timeout, `UNKNOWN_TIMEOUT` outcome on failure.
 - Implement `kyphra.hook.main` as a Claude Code `UserPromptSubmit` hook. Always exits 0.
 - Local append-only JSONL logger with AES-GCM archive for ALERTA events.
-- Golden set v1 (30 labeled prompts) for validating classifier accuracy.
+- Golden set v1: **≥20 curated rows** in `tests/golden_set.jsonl` (schema tests in CI); expand toward **30–50** before commercial demos and run against the live Worker for score/category calibration.
 - Invariant tests: no raw prompt to disk, no raw prompt to external API, hook always exits 0.
 
 **Exit criteria:** hook installed on my own machine, classifies prompts live with Haiku, ALERTA events encrypted locally, invariant tests green.
