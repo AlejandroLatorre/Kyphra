@@ -86,7 +86,7 @@ export default {
       });
     }
 
-    const model = env.OPENROUTER_MODEL ?? "anthropic/claude-3-5-haiku-20241022";
+    const model = env.OPENROUTER_MODEL ?? "anthropic/claude-3.5-haiku";
 
     const orRes = await fetch(OPENROUTER_URL, {
       method: "POST",

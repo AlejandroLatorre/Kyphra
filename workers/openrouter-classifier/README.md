@@ -20,7 +20,7 @@ Pega la clave cuando te la pida (no aparecerá en pantalla al completo).
 
 ## Modelo (opcional)
 
-Edita `wrangler.toml` → `[vars]` → `OPENROUTER_MODEL` con el slug exacto de [openrouter.ai/models](https://openrouter.ai/models) y vuelve a desplegar.
+Edita `wrangler.toml` → `[vars]` → `OPENROUTER_MODEL` con el slug exacto de [openrouter.ai/models](https://openrouter.ai/models) y vuelve a desplegar. El valor por defecto en código es `anthropic/claude-3.5-haiku` (slugs viejos como `anthropic/claude-3-5-haiku-20241022` pueden devolver 404 en OpenRouter).
 
 ## Desplegar
 

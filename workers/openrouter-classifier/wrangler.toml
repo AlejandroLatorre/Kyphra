@@ -3,6 +3,6 @@ main = "src/index.ts"
 compatibility_date = "2024-12-01"
 
 [vars]
-OPENROUTER_MODEL = "anthropic/claude-3-5-haiku-20241022"
+OPENROUTER_MODEL = "anthropic/claude-3.5-haiku"
 
 # Set the real key with: wrangler secret put OPENROUTER_API_KEY
